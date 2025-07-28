@@ -224,4 +224,6 @@ docker-compose logs worker
 ### Postman Collection
 
 - [Postman Collection](Skynet_API.postman_collection.json)
-  - Set the Global variable DEV_JWT_TOKEN with the token you get back from `api/v1/login`
+- Set the Global variable DEV_JWT_TOKEN with the token you get back from `api/v1/login`
+- Endpoints such as `/api/v1/leads/process-bulk` are designed for bulk data processing.
+  Adjust the data volume in the `Scripts` tab as needed.
