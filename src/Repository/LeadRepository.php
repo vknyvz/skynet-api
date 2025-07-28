@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\LeadFilterDto;
 use App\Entity\Lead;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -47,40 +48,36 @@ class LeadRepository extends ServiceEntityRepository
    * Find leads with pagination and filtering (cached)
    */
   public function findWithFilters(
-    int     $page = 1,
-    int     $limit = 20,
-    ?string $status = null,
-    ?string $email = null,
-    ?string $search = null
+    LeadFilterDto $filter
   ): array
   {
     $cacheKey = sprintf(
       'leads_filtered_%d_%d_%s_%s_%s',
-      $page,
-      $limit,
-      $status ?? 'null',
-      $email ?? 'null',
-      $search ?? 'null'
+      $filter->page,
+      $filter->limit,
+      $filter->status ?? 'null',
+      $filter->email ?? 'null',
+      $filter->search ?? 'null'
     );
 
-    return $this->cache->get($cacheKey, function (ItemInterface $item) use ($page, $limit, $status, $email, $search) {
+    return $this->cache->get($cacheKey, function () use ($filter) {
       $qb = $this->createQueryBuilder('l')
         ->select('DISTINCT l.id')
         ->orderBy('l.createdAt', 'DESC')
-        ->setFirstResult(($page - 1) * $limit)
-        ->setMaxResults($limit);
+        ->setFirstResult(($filter->page - 1) * $filter->limit)
+        ->setMaxResults($filter->limit);
 
-      if ($status) {
+      if ($filter->status) {
         $qb->andWhere('l.status = :status')
-          ->setParameter('status', $status);
+          ->setParameter('status', $filter->status);
       }
 
-      if ($email) {
+      if ($filter->email) {
         $qb->andWhere('l.email LIKE :email')
-          ->setParameter('email', '%' . $email . '%');
+          ->setParameter('email', '%' . $filter->email . '%');
       }
 
-      if ($search) {
+      if ($filter->search) {
         $qb->andWhere(
           $qb->expr()->orX(
             $qb->expr()->like('l.firstName', ':search'),
@@ -88,7 +85,7 @@ class LeadRepository extends ServiceEntityRepository
             $qb->expr()->like('l.email', ':search'),
             $qb->expr()->like('l.phone', ':search')
           )
-        )->setParameter('search', '%' . $search . '%');
+        )->setParameter('search', '%' . $filter->search . '%');
       }
 
       $leadIds = array_column($qb->getQuery()->getScalarResult(), 'id');
@@ -108,33 +105,31 @@ class LeadRepository extends ServiceEntityRepository
    * Count leads with filters
    */
   public function countWithFilters(
-    ?string $status = null,
-    ?string $email = null,
-    ?string $search = null
+    LeadFilterDto $filter
   ): int
   {
     $cacheKey = sprintf(
       'leads_count_filtered_%s_%s_%s',
-      $status ?? 'null',
-      $email ?? 'null',
-      $search ?? 'null'
+      $filter->status ?? 'null',
+      $filter->email ?? 'null',
+      $filter->search ?? 'null'
     );
 
-    return $this->cache->get($cacheKey, function () use ($status, $email, $search) {
+    return $this->cache->get($cacheKey, function () use ($filter) {
       $qb = $this->createQueryBuilder('l')
         ->select('COUNT(l.id)');
 
-      if ($status) {
+      if ($filter->status) {
         $qb->andWhere('l.status = :status')
-          ->setParameter('status', $status);
+          ->setParameter('status', $filter->status);
       }
 
-      if ($email) {
+      if ($filter->email) {
         $qb->andWhere('l.email LIKE :email')
-          ->setParameter('email', '%' . $email . '%');
+          ->setParameter('email', '%' . $filter->email . '%');
       }
 
-      if ($search) {
+      if ($filter->search) {
         $qb->andWhere(
           $qb->expr()->orX(
             $qb->expr()->like('l.firstName', ':search'),
@@ -142,7 +137,7 @@ class LeadRepository extends ServiceEntityRepository
             $qb->expr()->like('l.email', ':search'),
             $qb->expr()->like('l.phone', ':search')
           )
-        )->setParameter('search', '%' . $search . '%');
+        )->setParameter('search', '%' . $filter->search . '%');
       }
 
       return (int)$qb->getQuery()->getSingleScalarResult();

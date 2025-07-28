@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api;
 
+use App\DTO\LeadFilterDto;
+use App\Exception\LeadNotFoundException;
 use App\Repository\LeadRepository;
 use App\Service\LeadProcessingService;
 use App\Service\AsyncLeadService;
@@ -12,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class LeadController extends AbstractController
 {
@@ -20,21 +23,32 @@ class LeadController extends AbstractController
     private readonly SerializerInterface    $serializer,
     private readonly LeadProcessingService  $leadProcessingService,
     private readonly AsyncLeadService       $asyncLeadService,
-    private readonly AsyncLoggingService    $asyncLoggingService
+    private readonly AsyncLoggingService    $asyncLoggingService,
+    private readonly ValidatorInterface     $validator
   ) {}
 
   #[Route('/api/v1/leads', methods: ['GET'])]
   public function index(Request $request): JsonResponse
   {
     try {
-      $page = max(1, (int)$request->query->get('page', 1));
-      $limit = min(100, max(1, (int)$request->query->get('limit', 20)));
-      $status = $request->query->get('status');
-      $email = $request->query->get('email');
-      $search = $request->query->get('search');
+      $filter = new LeadFilterDto();
 
-      $leads = $this->leadRepository->findWithFilters($page, $limit, $status, $email, $search);
-      $total = $this->leadRepository->countWithFilters($status, $email, $search);
+      $filter->page = max(1, (int)$request->query->get('page', $filter->page));
+      $filter->limit = min(100, max(1, (int)$request->query->get('limit', $filter->limit)));
+      $filter->status = $request->query->get('status', $filter->status);
+      $filter->email = $request->query->get('email', $filter->email);
+      $filter->search = $request->query->get('search', $filter->search);
+
+      $errors = $this->validator->validate($filter);
+      if (count($errors) > 0) {
+        return $this->json([
+          'success' => false,
+          'message' => 'Bad filters were provided',
+        ], Response::HTTP_BAD_REQUEST);
+      }
+
+      $leads = $this->leadRepository->findWithFilters($filter);
+      $total = $this->leadRepository->countWithFilters($filter);
 
       $serializedLeads = $this->serializer->serialize($leads, 'json', ['groups' => ['lead:read', 'lead:read:detailed']]);
 
@@ -42,19 +56,20 @@ class LeadController extends AbstractController
         'success' => true,
         'data' => json_decode($serializedLeads, true),
         'pagination' => [
-          'page' => $page,
-          'limit' => $limit,
+          'page' => $filter->page,
+          'limit' => $filter->limit,
           'total' => $total,
-          'pages' => ceil($total / $limit)
+          'pages' => ceil($total / $filter->limit)
         ]
       ];
 
       return new JsonResponse($response, Response::HTTP_OK);
 
     } catch (\Exception $e) {
-      $this->asyncLoggingService->logError($request->attributes->get('_thread_key'), $e, [
+      $this->asyncLoggingService->logError('ERROR_FETCHING_LEADS', $e, [
         'error' => $e->getMessage(),
-        'trace' => $e->getTraceAsString()
+        'trace' => $e->getTraceAsString(),
+        'filters' => isset($filter) ? $filter->toArray() : null,
       ]);
 
       return $this->json([
@@ -66,16 +81,13 @@ class LeadController extends AbstractController
   }
 
   #[Route('/api/v1/leads/{id}', methods: ['GET'])]
-  public function show(int $id, Request $request): JsonResponse
+  public function show(int $id): JsonResponse
   {
     try {
       $lead = $this->leadRepository->show($id);
 
       if (!$lead) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Lead not found'
-        ], Response::HTTP_NOT_FOUND);
+        throw new LeadNotFoundException('Lead not found');
       }
 
       $serializedLead = $this->serializer->serialize($lead, 'json', ['groups' => ['lead:read', 'lead:read:detailed']]);
@@ -86,7 +98,7 @@ class LeadController extends AbstractController
       ], Response::HTTP_OK);
 
     } catch (\Exception $e) {
-      $this->asyncLoggingService->logError($request->attributes->get('_thread_key'), $e, [
+      $this->asyncLoggingService->logError('LEAD_NOT_FOUND', $e, [
         'lead_id' => $id,
         'error' => $e->getMessage()
       ]);
@@ -170,7 +182,7 @@ class LeadController extends AbstractController
       ], Response::HTTP_BAD_REQUEST);
 
     } catch (\Exception $e) {
-      $this->asyncLoggingService->logError($requestId, $e, [
+      $this->asyncLoggingService->logError('LEAD_PROCESS_ERROR', $e, [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString(),
         'data' => $data ?? null
@@ -287,7 +299,7 @@ class LeadController extends AbstractController
       return $this->json($response, Response::HTTP_ACCEPTED);
 
     } catch (\Exception $e) {
-      $this->asyncLoggingService->logError($requestId, $e, [
+      $this->asyncLoggingService->logError('LEAD_PROCESS_BULK_ERROR', $e, [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString()
       ]);
