@@ -83,7 +83,7 @@ export function setup() {
   });
   
   if (loginResponse.status === 200) {
-    const token = loginResponse.json('token');
+    const token = JSON.parse(loginResponse.body).user.token;
     console.log('Successfully obtained JWT token for batch testing');
     return { token: token };
   }

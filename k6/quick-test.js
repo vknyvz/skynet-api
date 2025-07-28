@@ -40,7 +40,7 @@ export function setup() {
   });
   
   if (loginResponse.status === 200) {
-    const token = JSON.parse(loginResponse.body).token;
+    const token = JSON.parse(loginResponse.body).user.token;
     console.log('✅ Authentication successful');
     return { token: token };
   } else {

@@ -2,16 +2,18 @@
 
 namespace App\Message;
 
+use App\DTO\LeadDto;
+
 readonly class ProcessLeadMessage
 {
   public function __construct(
-    private array $leadData,
+    private LeadDto $leadDto,
     private mixed $batchId = null
   ) {}
 
-  public function getLeadData(): array
+  public function getLeadDto(): LeadDto
   {
-    return $this->leadData;
+    return $this->leadDto;
   }
 
   public function getBatchId(): mixed

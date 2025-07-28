@@ -2,21 +2,24 @@
 
 namespace App\Service;
 
+use App\DTO\LeadDto;
 use App\Message\ProcessLeadMessage;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 readonly class AsyncLeadService
 {
   public function __construct(
     private MessageBusInterface $messageBus,
-    private AsyncLoggingService $asyncLoggingService
+    private AsyncLoggingService $asyncLoggingService,
+    private ValidatorInterface $validator,
   ) {}
 
-  public function processLeadAsync(array $leadData, mixed $batchId = null): void
+  public function processLeadAsync(LeadDto $leadDto, mixed $batchId = null): void
   {
     try {
-      $message = new ProcessLeadMessage($leadData, $batchId);
+      $message = new ProcessLeadMessage($leadDto, $batchId);
       $this->messageBus->dispatch($message, [
         new AmqpStamp('lead.process')
       ]);
@@ -43,8 +46,23 @@ readonly class AsyncLeadService
       $batchId = time() . '_' . $index;
 
       foreach ($chunk as $leadData) {
-        $flattenedData = $this->flattenLeadData($leadData);
-        $this->processLeadAsync($flattenedData, $batchId);
+        $leadDto = new LeadDto();
+        $leadDto = $leadDto->hydrate($this->flattenLeadData($leadData));
+
+        $violations = $this->validator->validate($leadDto);
+        if (count($violations) > 0) {
+          $errors = [];
+          foreach ($violations as $violation) {
+            $errors[] = $violation->getMessage();
+          }
+
+          $this->asyncLoggingService->info('LEADS_BULK_VALIDATION_ERROR', [
+            'data' => $leadDto->toArray(),
+            'errors' => $errors,
+          ]);
+        } else {
+          $this->processLeadAsync($leadDto, $batchId);
+        }
       }
 
       $batchIds[] = $batchId;

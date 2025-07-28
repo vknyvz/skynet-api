@@ -2,61 +2,88 @@
 
 namespace App\Service;
 
+use App\DTO\LeadDto;
 use App\Entity\Lead;
 use App\Entity\LeadData;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 readonly class LeadProcessingService
 {
   public function __construct(
     private EntityManagerInterface $entityManager,
-    private ValidatorInterface     $validator
+    private PropertyAccessorInterface $propertyAccessor
   ) {}
 
-  public function processLead(array $data): Lead
+  public function processLead(LeadDto $leadDto): Lead
   {
     $lead = new Lead();
 
-    $lead->setFirstName(trim($data['firstName']));
-    $lead->setLastName(trim($data['lastName']));
-    $lead->setEmail(trim($data['email']));
-
-    if (isset($data['phone'])) {
-      $lead->setPhone(trim($data['phone']));
-    }
-
-    if (isset($data['dateOfBirth'])) {
-      $dateOfBirth = new \DateTime($data['dateOfBirth']);
-      $lead->setDateOfBirth($dateOfBirth);
-    }
-
-    $lead->setStatus($data['status'] ?? 'active');
-
-    $violations = $this->validator->validate($lead);
-    if (count($violations) > 0) {
-      $errors = [];
-      foreach ($violations as $violation) {
-        $errors[] = $violation->getMessage();
-      }
-      throw new \InvalidArgumentException(implode(', ', $errors));
-    }
+    $this->mapBasicProperties($leadDto, $lead);
+    $this->processDynamicData($leadDto, $lead);
 
     $this->entityManager->persist($lead);
-
-    $standardFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'company', 'source', 'status'];
-    foreach ($data as $key => $value) {
-      if (!in_array($key, $standardFields) && $value !== null) {
-        $leadData = new LeadData();
-        $leadData->setLead($lead);
-        $leadData->setFieldName($key);
-        $leadData->setFieldValue((string)$value);
-        $this->entityManager->persist($leadData);
-      }
-    }
-
     $this->entityManager->flush();
 
     return $lead;
+  }
+
+  public function mapBasicProperties(LeadDto $leadDto, Lead $lead): void
+  {
+    $propertyMap = [
+      'firstName' => 'firstName',
+      'lastName' => 'lastName',
+      'email' => 'email',
+      'phone' => 'phone',
+      'dateOfBirth' => 'dateOfBirth',
+      'status' => 'status'
+    ];
+
+    foreach ($propertyMap as $dtoProperty => $entityProperty) {
+      $value = $this->propertyAccessor->getValue($leadDto, $dtoProperty);
+
+      if ($value !== null) {
+        if (is_string($value) && $dtoProperty !== 'dateOfBirth') {
+          $value = trim($value);
+        }
+
+        $this->propertyAccessor->setValue($lead, $entityProperty, $value);
+      }
+    }
+
+    if ($lead->getStatus() === null) {
+      $lead->setStatus('active');
+    }
+  }
+
+  private function processDynamicData(LeadDto $leadDto, Lead $lead): void
+  {
+    if ($leadDto->dynamicData === null) {
+      return;
+    }
+
+    foreach ($leadDto->dynamicData as $dynamicDataDto) {
+      if ($dynamicDataDto->fieldValue !== null) {
+        $leadData = new LeadData();
+        $leadData->setLead($lead);
+        $leadData->setFieldName($dynamicDataDto->fieldName);
+        $leadData->setFieldValue($this->convertValueToString($dynamicDataDto->fieldValue, $dynamicDataDto->fieldType));
+        $leadData->setFieldType($dynamicDataDto->fieldType);
+
+        $this->entityManager->persist($leadData);
+      }
+    }
+  }
+
+  private function convertValueToString(mixed $value, ?string $fieldType): string
+  {
+    return match ($fieldType) {
+      'boolean' => $value ? '1' : '0',
+      'json' => json_encode($value),
+      'date', 'datetime' => $value instanceof \DateTimeInterface
+        ? $value->format($fieldType === 'date' ? 'Y-m-d' : 'Y-m-d H:i:s')
+        : (string) $value,
+      default => (string) $value
+    };
   }
 }

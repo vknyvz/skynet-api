@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\DTO\LeadDto;
 use App\DTO\LeadFilterDto;
 use App\Exception\LeadNotFoundException;
 use App\Repository\LeadRepository;
@@ -113,45 +114,20 @@ class LeadController extends AbstractController
   #[Route('/api/v1/lead/process', methods: ['POST'])]
   public function process(Request $request): JsonResponse
   {
-    $requestId = $request->attributes->get('_thread_key') ?? $this->asyncLoggingService->generateRequestId();
+    $requestId = $request->attributes->get('_thread_key')
+      ?? $this->asyncLoggingService->generateRequestId();
 
     try {
-      $data = json_decode($request->getContent(), true);
+      $leadDto = new LeadDto();
+      $data = $leadDto->hydrate(json_decode($request->getContent(), true));
 
-      if (!$data) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Invalid JSON payload',
-          'thread_key' => $requestId
-        ], Response::HTTP_BAD_REQUEST);
-      }
-
-      $requiredFields = ['firstName', 'lastName', 'email'];
-      $missingFields = [];
-
-      foreach ($requiredFields as $field) {
-        if (!isset($data[$field]) || empty(trim($data[$field]))) {
-          $missingFields[] = $field;
+      $violations = $this->validator->validate($leadDto);
+      if (count($violations) > 0) {
+        $errors = [];
+        foreach ($violations as $violation) {
+          $errors[] = $violation->getMessage();
         }
-      }
-
-      if (!empty($missingFields)) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Missing required fields',
-          'missing_fields' => $missingFields,
-          'thread_key' => $requestId
-        ], Response::HTTP_BAD_REQUEST);
-      }
-
-      $existingLead = $this->leadRepository->findOneBy(['email' => $data['email']]);
-      if ($existingLead) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Lead with this email already exists',
-          'existing_lead_id' => $existingLead->getId(),
-          'thread_key' => $requestId
-        ], Response::HTTP_CONFLICT);
+        throw new \InvalidArgumentException(implode(', ', $errors));
       }
 
       $lead = $this->leadProcessingService->processLead($data);
@@ -203,32 +179,16 @@ class LeadController extends AbstractController
       $this->asyncLoggingService->generateRequestId();
 
     try {
-      $data = json_decode($request->getContent(), true);
+      $leadDto = new LeadDto();
+      $data = $leadDto->hydrate(json_decode($request->getContent(), true));
 
-      if (!$data) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Invalid JSON payload',
-          'thread_key' => $requestId
-        ], Response::HTTP_BAD_REQUEST);
-      }
-
-      $requiredFields = ['firstName', 'lastName', 'email'];
-      $missingFields = [];
-
-      foreach ($requiredFields as $field) {
-        if (!isset($data[$field]) || empty(trim($data[$field]))) {
-          $missingFields[] = $field;
+      $violations = $this->validator->validate($leadDto);
+      if (count($violations) > 0) {
+        $errors = [];
+        foreach ($violations as $violation) {
+          $errors[] = $violation->getMessage();
         }
-      }
-
-      if (!empty($missingFields)) {
-        return $this->json([
-          'success' => false,
-          'message' => 'Missing required fields',
-          'missing_fields' => $missingFields,
-          'thread_key' => $requestId
-        ], Response::HTTP_BAD_REQUEST);
+        throw new \InvalidArgumentException(implode(', ', $errors));
       }
 
       $this->asyncLeadService->processLeadAsync($data);
@@ -241,6 +201,14 @@ class LeadController extends AbstractController
       ];
 
       return $this->json($response, Response::HTTP_ACCEPTED);
+
+    } catch (\InvalidArgumentException $e) {
+      return $this->json([
+        'success' => false,
+        'message' => 'Validation error, nothing queued',
+        'errors' => $e->getMessage(),
+        'thread_key' => $requestId
+      ], Response::HTTP_BAD_REQUEST);
 
     } catch (\Exception $e) {
       $this->asyncLoggingService->logError($requestId, $e, [
@@ -262,7 +230,8 @@ class LeadController extends AbstractController
   #[Route('/api/v1/leads/process-bulk', methods: ['POST'])]
   public function processBulk(Request $request): JsonResponse
   {
-    $requestId = $request->attributes->get('_thread_key') ?? $this->asyncLoggingService->generateRequestId();
+    $requestId = $request->attributes->get('_thread_key')
+      ?? $this->asyncLoggingService->generateRequestId();
 
     try {
       $data = json_decode($request->getContent(), true);

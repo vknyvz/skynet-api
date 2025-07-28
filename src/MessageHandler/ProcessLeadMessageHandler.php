@@ -18,16 +18,16 @@ readonly class ProcessLeadMessageHandler
 
   public function __invoke(ProcessLeadMessage $message): void
   {
-    $leadData = $message->getLeadData();
+    $leadDto = $message->getLeadDto();
     $batchId = $message->getBatchId();
 
     try {
       $this->asyncLoggingService->info('PROCESSING_LEAD_ASYNC', [
         'batch_id' => $batchId,
-        'email' => $leadData['email'] ?? 'unknown'
+        'email' => $leadDto->email ?? 'unknown, although it should\'t be',
       ]);
 
-      $lead = $this->leadProcessingService->processLead($leadData);
+      $lead = $this->leadProcessingService->processLead($leadDto);
 
       $this->asyncLoggingService->info('PROCESSED_SUCCESSFULLY', [
         'batch_id' => $batchId,
@@ -38,7 +38,7 @@ readonly class ProcessLeadMessageHandler
     } catch (\InvalidArgumentException $e) {
       $this->asyncLoggingService->logError('LEAD_VALIDATION_FAILED', $e, [
         'batch_id' => $batchId,
-        'lead_data' => $leadData
+        'lead_dto_array' => $leadDto->toArray(),
       ]);
 
       throw new UnrecoverableMessageHandlingException($e->getMessage(), $e->getCode(), $e);
@@ -46,7 +46,7 @@ readonly class ProcessLeadMessageHandler
     } catch (\Exception $e) {
       $this->asyncLoggingService->logError('FAILED_TO_PROCESS', $e, [
         'batch_id' => $batchId,
-        'lead_data' => $leadData
+        'lead_dto_array' => $leadDto->toArray(),
       ]);
 
       throw $e;
