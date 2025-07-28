@@ -1,0 +1,56 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            rabbitmq_leads:
+                dsn: 'amqp://guest:guest@rabbitmq:5672/%2f'
+                options:
+                    exchange:
+                        name: 'leads_exchange'
+                        type: 'direct'
+                    queues:
+                        leads_queue:
+                            binding_keys: ['lead.process']
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 10000
+
+            rabbitmq_logs:
+                dsn: 'amqp://guest:guest@rabbitmq:5672/%2f'
+                options:
+                    exchange:
+                        name: 'logs_exchange'
+                        type: 'direct'
+                    queues:
+                        logs_queue:
+                            binding_keys: ['log.write']
+                retry_strategy:
+                    max_retries: 2
+                    delay: 500
+                    multiplier: 2
+
+            failed:
+                dsn: 'amqp://guest:guest@rabbitmq:5672/%2f'
+                options:
+                    exchange:
+                        name: 'failed_exchange'
+                        type: 'direct'
+                    queues:
+                        failed_queue:
+                            binding_keys: ['failed.message']
+
+        routing:
+            App\Message\ProcessLeadMessage: rabbitmq_leads
+            App\Message\LogMessage: rabbitmq_logs
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                rabbitmq_leads:
+                    dsn: 'in-memory://'
+                rabbitmq_logs:
+                    dsn: 'in-memory://'

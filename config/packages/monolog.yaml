@@ -1,0 +1,74 @@
+monolog:
+    channels:
+        - api_logs
+        
+when@dev:
+    monolog:
+        handlers:
+            # Standard application logging
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+                channels: ["!event", "!api_logs"]
+
+            # Dedicated API logging for Splunk ingestion
+            api_logs:
+                type: stream
+                path: "%kernel.logs_dir%/api.log"
+                level: info
+                channels: ["api_logs"]
+                formatter: 'monolog.formatter.json'
+                
+            # Console logging for development
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine", "!console", "!api_logs"]
+
+when@prod:
+    monolog:
+        handlers:
+            # Main application logging (production)
+            main:
+                type: fingers_crossed
+                action_level: error
+                handler: nested
+                excluded_http_codes: [404, 405]
+                channels: ["!event", "!api_logs"]
+            nested:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+                formatter: monolog.formatter.json
+
+            # API logging for Splunk (production) 
+            api_logs:
+                type: stream
+                path: "%kernel.logs_dir%/api.log"
+                level: info
+                channels: ["api_logs"]
+                formatter: 'monolog.formatter.json'
+                
+            # Console for critical errors
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine", "!api_logs"]
+                level: error
+
+when@test:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/test.log"
+                level: debug
+                channels: ["!event", "!api_logs"]
+                
+            api_logs:
+                type: stream  
+                path: "%kernel.logs_dir%/api_test.log"
+                level: info
+                channels: ["api_logs"]
+                formatter: 'monolog.formatter.json'

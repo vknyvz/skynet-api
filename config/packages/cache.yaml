@@ -1,0 +1,41 @@
+framework:
+    cache:
+        # Unique name of your app: used to compute stable namespaces for cache keys.
+        prefix_seed: lead_pulse_api
+
+        # Use filesystem caching for compatibility testing
+        app: cache.adapter.redis
+
+        default_redis_provider: 'redis://redis:6379'
+
+        # Namespaced pools for different cache types
+        pools:
+            # Cache for API responses and business logic
+            cache.api_responses:
+                adapter: cache.adapter.redis
+                default_lifetime: 5 # 1 hour
+            
+            # Cache for user sessions and authentication
+            cache.user_sessions:
+                adapter: cache.adapter.redis
+                default_lifetime: 7200 # 2 hours
+            
+            # Cache for lead statistics and aggregations
+            cache.lead_stats:
+                adapter: cache.adapter.redis
+                default_lifetime: 900 # 15 minutes
+
+when@test:
+    framework:
+        cache:
+            # Use filesystem cache in test environment for reliability
+            app: cache.adapter.filesystem
+            pools:
+                cache.api_responses:
+                    adapter: cache.adapter.filesystem
+                cache.doctrine_result:
+                    adapter: cache.adapter.filesystem
+                cache.user_sessions:
+                    adapter: cache.adapter.filesystem
+                cache.lead_stats:
+                    adapter: cache.adapter.filesystem

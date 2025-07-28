@@ -1,0 +1,723 @@
+{
+	"info": {
+		"_postman_id": "ac8c63f3-4d80-47a1-ba31-980567a7c484",
+		"name": "Skynet API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2447318"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login - Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/login",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Regular User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"user\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/login",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{DEV_JWT_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/user/profile",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lead Management",
+			"item": [
+				{
+					"name": "Process Single",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"{{$randomFirstName}}\",\n    \"lastName\": \"{{$randomLastName}}\",\n    \"email\": \"{{$randomFirstName}}.{{$randomLastName}}.{{$timestamp}}@epcvip.com\",\n    \"phone\": \"+1555{{$randomInt}}\",\n    \"dateOfBirth\": \"1990-07-27\",\n    \"company\": \"{{$randomCompanyName}}\",\n    \"source\": \"postman_test\",\n    \"customField1\": \"{{$randomUUID}}\",\n    \"customField2\": \"{{$randomWord}}\",\n    \"leadScore\": {{$randomInt}},\n    \"notes\": \"Test lead generated at {{$isoTimestamp}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/lead/process",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"lead",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process Async",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"{{$randomFirstName}}\",\n    \"lastName\": \"{{$randomLastName}}\",\n    \"email\": \"{{$randomFirstName}}.{{$randomLastName}}.{{$timestamp}}@epcvip.com\",\n    \"phone\": \"+1555{{$randomInt}}\",\n    \"dateOfBirth\": \"1990-07-27\",\n    \"company\": \"{{$randomCompanyName}}\",\n    \"source\": \"postman_test\",\n    \"customField1\": \"{{$randomUUID}}\",\n    \"customField2\": \"{{$randomWord}}\",\n    \"leadScore\": {{$randomInt}},\n    \"notes\": \"Test lead generated at {{$isoTimestamp}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/lead/process-async",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"lead",
+								"process-async"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process Async Bulk",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numLeads = 50; ",
+									"const leadsArray = [];",
+									"",
+									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
+									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
+									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
+									"",
+									"for (let i = 0; i < numLeads; i++) {",
+									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"    const company = companies[Math.floor(Math.random() * companies.length)];",
+									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
+									"",
+									"    const lead = {",
+									"        firstName: firstName,",
+									"        lastName: lastName,",
+									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
+									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
+									"        company: company,",
+									"        source: \"bulk_50_test\",",
+									"        notes: `Bulk 50 leads test - automated generation - Lead ${i + 1}`,",
+									"        timestamp: new Date().toISOString()",
+									"    };",
+									"    leadsArray.push(lead);",
+									"",
+									"    if ((i + 1) % 10 === 0 || i === 0) {",
+									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
+									"    }",
+									"}",
+									"",
+									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
+									"",
+									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "/* This will insert 50 leads. */\n{\n    \"leads\": {{bulkLeadsArrayJson}}\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads/process-bulk",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"leads",
+								"process-bulk"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Leads",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numLeads = 50; ",
+									"const leadsArray = [];",
+									"",
+									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
+									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
+									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
+									"",
+									"for (let i = 0; i < numLeads; i++) {",
+									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"    const company = companies[Math.floor(Math.random() * companies.length)];",
+									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
+									"",
+									"    const lead = {",
+									"        firstName: firstName,",
+									"        lastName: lastName,",
+									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
+									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
+									"        company: company,",
+									"        source: \"bulk_50_test\",",
+									"        notes: `Bulk 50 leads test - automated generation - Lead ${i + 1}`,",
+									"        timestamp: new Date().toISOString()",
+									"    };",
+									"    leadsArray.push(lead);",
+									"",
+									"    if ((i + 1) % 10 === 0 || i === 0) {",
+									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
+									"    }",
+									"}",
+									"",
+									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
+									"",
+									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads?page=1&limit=10",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"leads"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lead",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numLeads = 50; ",
+									"const leadsArray = [];",
+									"",
+									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
+									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
+									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
+									"",
+									"for (let i = 0; i < numLeads; i++) {",
+									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"    const company = companies[Math.floor(Math.random() * companies.length)];",
+									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
+									"",
+									"    const lead = {",
+									"        firstName: firstName,",
+									"        lastName: lastName,",
+									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
+									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
+									"        company: company,",
+									"        source: \"bulk_50_test\",",
+									"        notes: `Bulk 50 leads test - automated generation - Lead ${i + 1}`,",
+									"        timestamp: new Date().toISOString()",
+									"    };",
+									"    leadsArray.push(lead);",
+									"",
+									"    if ((i + 1) % 10 === 0 || i === 0) {",
+									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
+									"    }",
+									"}",
+									"",
+									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
+									"",
+									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"leads"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{DEV_JWT_TOKEN}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Error & Validation Tests",
+			"item": [
+				{
+					"name": "Unauthorized Access",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"leads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"invalid\",\n    \"password\": \"wrong\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/login",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Missing Required Fields",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{DEV_JWT_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Volkan\",\n    \"lastName\": \"Yavuz\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/lead/process",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"lead",
+								"process"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Load Testing",
+			"item": [
+				{
+					"name": "1000 Leads Async Bulk",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const numLeads = 1000; ",
+									"const leadsArray = [];",
+									"",
+									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
+									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
+									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
+									"",
+									"for (let i = 0; i < numLeads; i++) {",
+									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"    const company = companies[Math.floor(Math.random() * companies.length)];",
+									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
+									"",
+									"    const lead = {",
+									"        firstName: firstName,",
+									"        lastName: lastName,",
+									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
+									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
+									"        company: company,",
+									"        source: \"bulk_1000_test\",",
+									"        notes: `Bulk 1000 leads test - automated generation - Lead ${i + 1}`,",
+									"        timestamp: new Date().toISOString()",
+									"    };",
+									"    leadsArray.push(lead);",
+									"",
+									"    if ((i + 1) % 10 === 0 || i === 0) {",
+									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
+									"    }",
+									"}",
+									"",
+									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
+									"",
+									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "/* This will insert 1000 leads. */\n{\n    \"leads\": {{bulkLeadsArrayJson}}\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads/process-bulk",
+							"host": [
+								"{{DEV_API_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"leads",
+								"process-bulk"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{DEV_JWT_TOKEN}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "HealthCheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{DEV_API_ENDPOINT}}/api/v1/health",
+					"host": [
+						"{{DEV_API_ENDPOINT}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "DEV_API_ENDPOINT",
+			"value": "http://localhost:8001",
+			"type": "string"
+		},
+		{
+			"key": "DEV_JWT_TOKEN",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NTM2NTY4NDgsImV4cCI6MTc1MzY2MDQ0OCwicm9sZXMiOlsiUk9MRV9BRE1JTiIsIlJPTEVfVVNFUiJdLCJ1c2VybmFtZSI6ImFkbWluIn0.adb7tIV4ty78LhNqLZspXNjlqIcd61XXvrZBMmLxgQVEQ_bo7hD94wbTIiNTgvmG-UiUy_jH4CxLHU99EGGMAoS9RIR5Bf3yOO4IGoWxJrhwykZzsvXa7wAkMRz__353KEw_5kqRsrwGGqUdvAKDYUvYFzoCc5JYNdqKs5lvoIVvSWYfe0elJr3GLEGSOVZaZxUi_eaklXQD72-9hH7LR_scAjNwGMJ7W-js7EkdTyM6lmkfiAV95nszht1inXXf1rSUE6dMPgfS6xZw_kndkSS-5WOFxuB3711xeiwh4OJi3tgG_fQOVPJYbguEtRBrVJdYnvv3Kd4batbOKdF8zLVGtg5td3RympEhyWhkFtvylK9XE1gj7vcliQ0jLIpbcl8Q7r63xX4sxLS6ybGJXxb2R1nUVEh00o1Ok3poL3vHoBBJcE2M8-wvR0Xs-O-kB6jmo1sVJZzYBpw7DeZuQgQ0VsL2UkwwUvI8e-pRiuZjzmNdF7czJi7WXATkvkJWTq9n-bNG-X6Rl5LdfjQurLVQsdClHEz2cYbbJWh3bVBID0OFuQwSdvXjsJXK-s1D9khA6W2jO852ZJhdR-DvN55njFFBryaIkOqBZTideYewjQjovGkfxTgfAiHn5Xc8bm4v3dJHY6O9IBB9S0ZLG-4HVgtfWSFmUUzRvadFLIA",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,17 @@
+# Exclude vendor directory to preserve composer install results
+vendor/
+
+var/cache/*
+var/log/*
+var/sessions/*
+.git
+.gitignore
+docker-compose.yml
+Dockerfile
+.dockerignore
+README.md
+.env.local
+.env.*.local
+node_modules
+tests
+.phpunit.result.cache
