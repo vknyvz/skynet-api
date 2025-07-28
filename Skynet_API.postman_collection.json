@@ -248,39 +248,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const numLeads = 50; ",
-									"const leadsArray = [];",
-									"",
-									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
-									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
-									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
-									"",
-									"for (let i = 0; i < numLeads; i++) {",
-									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
-									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
-									"    const company = companies[Math.floor(Math.random() * companies.length)];",
-									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
-									"",
-									"    const lead = {",
-									"        firstName: firstName,",
-									"        lastName: lastName,",
-									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
-									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
-									"        company: company,",
-									"        source: \"bulk_50_test\",",
-									"        notes: `Bulk 50 leads test - automated generation - Lead ${i + 1}`,",
-									"        timestamp: new Date().toISOString()",
-									"    };",
-									"    leadsArray.push(lead);",
-									"",
-									"    if ((i + 1) % 10 === 0 || i === 0) {",
-									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
-									"    }",
-									"}",
-									"",
-									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
-									"",
-									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -313,7 +281,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads?page=1&limit=10",
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads?page=1&limit=5",
 							"host": [
 								"{{DEV_API_ENDPOINT}}"
 							],
@@ -329,7 +297,7 @@
 								},
 								{
 									"key": "limit",
-									"value": "10"
+									"value": "5"
 								}
 							]
 						}
@@ -343,39 +311,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const numLeads = 50; ",
-									"const leadsArray = [];",
-									"",
-									"const firstNames = ['Volkan', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Tom', 'Emma', 'Alex', 'Maria', 'Chris', 'Anna', 'Sam', 'Olivia', 'Ethan'];",
-									"const lastNames = ['Yavuz', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris'];",
-									"const companies = ['Tech Corp', 'Innovation Inc', 'Future Systems', 'Digital Solutions', 'Smart Business', 'Global Connect', 'Peak Solutions', 'NextGen AI'];",
-									"",
-									"for (let i = 0; i < numLeads; i++) {",
-									"    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
-									"    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
-									"    const company = companies[Math.floor(Math.random() * companies.length)];",
-									"    const uniqueId = Date.now() + Math.floor(Math.random() * 100000) + i;",
-									"",
-									"    const lead = {",
-									"        firstName: firstName,",
-									"        lastName: lastName,",
-									"        email: `bulk50_${String(i + 1).padStart(2, '0')}_${firstName.toLowerCase()}.${lastName.toLowerCase()}_${uniqueId}@epcvip.com`,",
-									"        phone: `+1555${String(Math.floor(Math.random() * 9000000) + 1000000)}`,",
-									"        company: company,",
-									"        source: \"bulk_50_test\",",
-									"        notes: `Bulk 50 leads test - automated generation - Lead ${i + 1}`,",
-									"        timestamp: new Date().toISOString()",
-									"    };",
-									"    leadsArray.push(lead);",
-									"",
-									"    if ((i + 1) % 10 === 0 || i === 0) {",
-									"        console.log(`Generated lead ${i + 1}/${numLeads}: ${firstName} ${lastName}`);",
-									"    }",
-									"}",
-									"",
-									"pm.environment.set('bulkLeadsArrayJson', JSON.stringify(leadsArray));",
-									"",
-									"console.log(`Generated ${numLeads} leads into 'bulkLeadsArrayJson' variable.`);"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -408,14 +344,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads",
+							"raw": "{{DEV_API_ENDPOINT}}/api/v1/leads/222",
 							"host": [
 								"{{DEV_API_ENDPOINT}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"leads"
+								"leads",
+								"222"
 							]
 						}
 					},
